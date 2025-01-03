@@ -1,8 +1,13 @@
 name: Build Docker Images
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
 on:
-  pull_request:
-  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
 
 jobs:
   build-api:
@@ -15,13 +20,23 @@ jobs:
       - name: Setup buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            trieve/firecrawl
+          tags: |
+            type=raw,latest
+            type=sha
+
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./apps/api
           file: ./apps/api/Dockerfile
-          push: false
-          load: true
+          push: true
           tags: trieve/firecrawl:pr-${{ github.event.number }}
           build-args: |
             PORT=8080
@@ -36,13 +51,23 @@ jobs:
       - name: Setup buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            trieve/puppeteer-service-ts
+          tags: |
+            type=raw,latest
+            type=sha
+
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./apps/puppeteer-service-ts/
           file: ./apps/puppeteer-service-ts/Dockerfile
-          push: false
-          load: true
-          tags: trieve/puppeteer-service-ts:pr-${{ github.event.number }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             PORT=3000
