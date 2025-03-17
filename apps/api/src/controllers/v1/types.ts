@@ -71,7 +71,7 @@ export const scrapeRequestSchema = scrapeOptions
   .extend({
     url,
     origin: z.string().optional().default("api"),
-    webhookUrl: z.string().url().optional(),
+    webhookUrls: z.string().url().array().optional(),
     metadata: z.any().optional(),
   })
   .strict(strictMessage);
@@ -97,7 +97,7 @@ export const crawlRequestSchema = crawlerOptions
     url,
     origin: z.string().optional().default("api"),
     scrapeOptions: scrapeOptions.omit({ timeout: true }).default({}),
-    webhookUrl: z.string().url().optional(),
+    webhookUrls: z.string().url().array().optional(),
     webhookMetadata: z.any().optional(),
     limit: z.number().default(10000),
   })

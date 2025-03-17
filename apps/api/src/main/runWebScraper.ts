@@ -31,7 +31,7 @@ export async function startWebScraperPipeline({
           }
         : {}),
     },
-    webhookUrl: job.data.webhookUrl,
+    webhookUrls: job.data.webhookUrls,
     webhookMetadata: job.data.webhookMetadata,
     inProgress: (progress) => {
       Logger.debug(`🐂 Job in progress ${job.id}`);
@@ -62,7 +62,7 @@ export async function runWebScraper({
   mode,
   crawlerOptions,
   pageOptions,
-  webhookUrl,
+  webhookUrls,
   webhookMetadata,
   inProgress,
   onSuccess,
@@ -82,7 +82,7 @@ export async function runWebScraper({
         urls: [url],
         crawlerOptions: crawlerOptions,
         pageOptions: pageOptions,
-        webhookUrl: webhookUrl,
+        webhookUrls: webhookUrls,
         webhookMetadata: webhookMetadata,
         bullJobId: bull_job_id,
         crawlId: crawl_id,
@@ -95,7 +95,7 @@ export async function runWebScraper({
         urls: url.split(","),
         crawlerOptions: crawlerOptions,
         pageOptions: pageOptions,
-        webhookUrl: webhookUrl,
+        webhookUrls: webhookUrls,
         webhookMetadata: webhookMetadata,
         crawlId: crawl_id,
         teamId: team_id,

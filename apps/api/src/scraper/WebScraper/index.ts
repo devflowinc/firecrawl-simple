@@ -25,7 +25,7 @@ export class WebScraperDataProvider {
   private concurrentRequests: number = 20;
   private ignoreSitemap: boolean = true;
   private pageOptions?: PageOptions;
-  private webhookUrl?: string;
+  private webhookUrls?: string[];
   private webhookMetadata?: any;
   private replaceAllPathsWithAbsolutePaths?: boolean = false;
   private crawlerMode: string = "default";
@@ -50,7 +50,7 @@ export class WebScraperDataProvider {
             url,
             this.pageOptions,
             existingHTML,
-            this.webhookUrl,
+            this.webhookUrls,
             this.webhookMetadata,
             this.crawlId,
           );
@@ -467,7 +467,7 @@ export class WebScraperDataProvider {
       disableJsDom: options.pageOptions?.disableJsDom ?? false,
       atsv: options.pageOptions?.atsv ?? false,
     };
-    this.webhookUrl = options.webhookUrl;
+    this.webhookUrls = options.webhookUrls;
     this.webhookMetadata = options.webhookMetadata;
     this.replaceAllPathsWithAbsolutePaths =
       options.crawlerOptions?.replaceAllPathsWithAbsolutePaths ??

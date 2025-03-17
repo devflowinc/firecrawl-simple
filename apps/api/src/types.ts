@@ -29,7 +29,7 @@ export interface WebScraperOptions {
   origin?: string;
   crawl_id: string;
   sitemapped?: boolean;
-  webhookUrl?: string;
+  webhookUrls?: string[];
   webhookMetadata?: any;
   v1?: boolean;
   is_scrape?: boolean;
@@ -40,7 +40,7 @@ export interface RunWebScraperParams {
   mode: Mode;
   crawlerOptions: any;
   pageOptions?: any;
-  webhookUrl?: string;
+  webhookUrls?: string[];
   webhookMetadata?: any;
   inProgress: (progress: any) => void;
   onSuccess: (result: any, mode: string) => void;

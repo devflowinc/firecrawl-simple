@@ -205,7 +205,7 @@ async function processJob(job: Job, token: string) {
                   crawlerOptions: sc.crawlerOptions,
                   team_id: sc.team_id,
                   pageOptions: sc.pageOptions,
-                  webhookUrl: job.data.webhookUrl,
+                  webhookUrls: job.data.webhookUrls,
                   webhookMetadata: job.data.webhookMetadata,
                   origin: job.data.origin,
                   crawl_id: job.data.crawl_id,

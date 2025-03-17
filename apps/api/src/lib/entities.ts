@@ -58,7 +58,7 @@ export type WebScraperOptions = {
   mode: "single_urls" | "sitemap" | "crawl";
   crawlerOptions?: CrawlerOptions;
   pageOptions?: PageOptions;
-  webhookUrl?: string;
+  webhookUrls?: string[];
   webhookMetadata?: any;
   concurrentRequests?: number;
   bullJobId?: string;
