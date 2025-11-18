@@ -1,3 +1,81 @@
+/**
+ * Check if an IPv4 address is in a private range (RFC 1918 + localhost + link-local)
+ * This prevents SSRF attacks by blocking requests to internal network addresses
+ */
+function isIPv4Private(ip: string): boolean {
+  const octets = ip.split('.').map(Number);
+
+  if (octets.length !== 4 || octets.some(octet => isNaN(octet) || octet < 0 || octet > 255)) {
+    return false;
+  }
+
+  // 10.0.0.0/8 - Private network
+  if (octets[0] === 10) {
+    return true;
+  }
+
+  // 172.16.0.0/12 - Private network (CRITICAL FIX: was previously not checked correctly)
+  // This range is 172.16.0.0 - 172.31.255.255
+  if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) {
+    return true;
+  }
+
+  // 192.168.0.0/16 - Private network
+  if (octets[0] === 192 && octets[1] === 168) {
+    return true;
+  }
+
+  // 127.0.0.0/8 - Loopback
+  if (octets[0] === 127) {
+    return true;
+  }
+
+  // 169.254.0.0/16 - Link-local
+  if (octets[0] === 169 && octets[1] === 254) {
+    return true;
+  }
+
+  // 0.0.0.0/8 - Current network
+  if (octets[0] === 0) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Check if a hostname resolves to a private IP or is a private hostname
+ */
+function isPrivateHostname(hostname: string): boolean {
+  // Check for localhost variants
+  if (hostname === 'localhost' || hostname.endsWith('.localhost')) {
+    return true;
+  }
+
+  // Check for .local domains (mDNS)
+  if (hostname.endsWith('.local')) {
+    return true;
+  }
+
+  // Check for internal domains
+  if (hostname.endsWith('.internal')) {
+    return true;
+  }
+
+  // Check if hostname is an IP address
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (ipv4Regex.test(hostname)) {
+    return isIPv4Private(hostname);
+  }
+
+  return false;
+}
+
+/**
+ * Blocked non-web protocols that should not be crawled
+ */
+const BLOCKED_PROTOCOLS = ['mailto:', 'tel:', 'telnet:', 'ftp:', 'ftps:', 'ssh:', 'file:', 'data:', 'javascript:'];
+
 export const protocolIncluded = (url: string) => {
   // if :// not in the start of the url assume http (maybe https?)
   // regex checks if :// appears before any .
@@ -28,8 +106,18 @@ export const checkAndUpdateURL = (url: string) => {
 
   const typedUrlObj = urlObj as URL;
 
+  // Check for blocked non-web protocols (PR #2357)
+  if (BLOCKED_PROTOCOLS.includes(typedUrlObj.protocol)) {
+    throw new Error(`URL uses a non-web protocol: ${typedUrlObj.protocol}`);
+  }
+
   if (typedUrlObj.protocol !== "http:" && typedUrlObj.protocol !== "https:") {
     throw new Error("Invalid URL");
+  }
+
+  // SSRF Protection (Issue #2070) - Block private IP addresses and hostnames
+  if (isPrivateHostname(typedUrlObj.hostname)) {
+    throw new Error("Access to private/internal hosts is not allowed");
   }
 
   return { urlObj: typedUrlObj, url: url };
@@ -43,12 +131,22 @@ export const checkUrl = (url: string) => {
 
   const typedUrlObj = urlObj as URL;
 
+  // Check for blocked non-web protocols (PR #2357)
+  if (BLOCKED_PROTOCOLS.includes(typedUrlObj.protocol)) {
+    throw new Error(`URL uses a non-web protocol: ${typedUrlObj.protocol}`);
+  }
+
   if (typedUrlObj.protocol !== "http:" && typedUrlObj.protocol !== "https:") {
     throw new Error("Invalid URL");
   }
 
   if ((url.split(".")[0].match(/:/g) || []).length !== 1) {
     throw new Error("Invalid URL. Invalid protocol."); // for this one: http://http://example.com
+  }
+
+  // SSRF Protection (Issue #2070) - Block private IP addresses and hostnames
+  if (isPrivateHostname(typedUrlObj.hostname)) {
+    throw new Error("Access to private/internal hosts is not allowed");
   }
 
   return url;

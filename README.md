@@ -21,6 +21,68 @@ Only the v1 `/scrape`, `/crawl/{id}`, and `/crawl` routes are supprted in firecr
 
 Posthog, supabase, stripe, langchain, logsnag, sentry, bullboard, and [several other deps from the package.json](https://github.com/mendableai/firecrawl/compare/main...devflowinc:firecrawl-simple:main#diff-2c40985d6d91eed8ae85ec1c8e754a85984ee32e156a600d2b7a467423d7e338) are removed.
 
+## Recent Security & Feature Improvements
+
+Firecrawl Simple has been enhanced with the following critical security fixes and features from the upstream repository:
+
+### 🔒 Security Enhancements
+
+- **SSRF Protection (#2070)**: Fixed critical vulnerability where RFC 1918 private IP range 172.16.0.0/12 was not properly blocked, preventing attacks on internal network resources. Now properly validates all private IP ranges including:
+  - 10.0.0.0/8
+  - 172.16.0.0/12 (critical fix)
+  - 192.168.0.0/16
+  - 127.0.0.0/8 (loopback)
+  - 169.254.0.0/16 (link-local)
+  - Also blocks localhost, .local, and .internal domains
+
+- **Non-HTTP Protocol Filtering (PR #2357)**: Blocks crawling of non-web protocols to prevent security issues and improve stability:
+  - `mailto:`, `tel:`, `telnet:`, `ftp:`, `ftps:`, `ssh:`, `file:`, `data:`, `javascript:`
+
+### 🛡️ Stability Improvements
+
+- **Forbidden Page Loop Fix (#2056)**: Prevents infinite retry loops when encountering forbidden (403), unauthorized (401), and other error status codes during scraping
+
+### 🔐 Webhook Security (v2.2.0)
+
+Webhooks now support HMAC-SHA256 signatures for verification:
+
+- Set `WEBHOOK_SECRET` environment variable to enable webhook signing
+- Signatures are sent in the `X-Firecrawl-Signature` header
+- Backward compatible - works without WEBHOOK_SECRET configured
+
+**Verify webhook signatures:**
+
+```typescript
+import crypto from "crypto";
+
+function verifyWebhook(payload: string, signature: string, secret: string): boolean {
+  const hmac = crypto.createHmac("sha256", secret);
+  hmac.update(payload);
+  const expectedSignature = hmac.digest("hex");
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature, "hex"),
+    Buffer.from(expectedSignature, "hex")
+  );
+}
+
+// In your webhook handler
+app.post("/webhook", (req, res) => {
+  const signature = req.headers["x-firecrawl-signature"];
+  const payload = JSON.stringify(req.body);
+
+  if (verifyWebhook(payload, signature, process.env.WEBHOOK_SECRET)) {
+    // Process webhook
+  } else {
+    res.status(401).send("Invalid signature");
+  }
+});
+```
+
+### ✨ API Improvements
+
+- **Job ID Tracking (PR #2414)**: All synchronous `/scrape` requests now return a `scrape_id` field for job tracking and error debugging
+
 ## Contributing
 
 This is a lot to maintain by ourselves and we are actively looking for others who would like to help. **There are paid part-time maintainer positions available.** We currently have bounties on a couple of issues, but would like someone interested in being an active maintainer longer-term.
@@ -72,6 +134,7 @@ services:
       - LOGGING_LEVEL=${LOGGING_LEVEL}
       - MAX_RAM=${MAX_RAM:-0.95}
       - MAX_CPU=${MAX_CPU:-0.95}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}  # Optional: for webhook signature verification
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -97,6 +160,7 @@ services:
       - LOGGING_LEVEL=${LOGGING_LEVEL}
       - MAX_RAM=${MAX_RAM:-0.95}
       - MAX_CPU=${MAX_CPU:-0.95}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}  # Optional: for webhook signature verification
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

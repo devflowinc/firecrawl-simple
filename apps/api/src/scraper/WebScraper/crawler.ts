@@ -219,6 +219,13 @@ export class WebCrawler {
       return null;
     }
 
+    // Block non-web protocols (PR #2357)
+    const BLOCKED_PROTOCOLS = ['mailto:', 'tel:', 'telnet:', 'ftp:', 'ftps:', 'ssh:', 'file:', 'data:', 'javascript:'];
+    if (BLOCKED_PROTOCOLS.includes(urlObj.protocol)) {
+      Logger.info(`URL uses a non-web protocol: ${fullUrl}`);
+      return null;
+    }
+
     if (fullUrl.includes("#")) return null;
     if (this.isFile(fullUrl)) return null;
 

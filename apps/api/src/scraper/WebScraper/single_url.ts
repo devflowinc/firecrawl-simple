@@ -20,26 +20,37 @@ export const callWebhook = async (
   metadata: any,
   scrapeId?: string
 ) => {
+  const { generateWebhookSignature } = await import("../../lib/webhook-signature");
+  const webhookSecret = process.env.WEBHOOK_SECRET;
+
   for (const webhookUrl of webhookUrls) {
     let retryCount = 0;
     while (retryCount < 3) {
       try {
-        await axios.post(
-          webhookUrl,
-          {
-            scrapeId: scrapeId ?? "unknown",
-            data,
-            metadata,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            timeout: 10000,
-          }
-        );
+        const payload = {
+          scrapeId: scrapeId ?? "unknown",
+          data,
+          metadata,
+        };
 
-        Logger.debug(`Webhook sent for scrape ID: ${scrapeId}`);
+        // Generate webhook signature (v2.2.0)
+        const signature = generateWebhookSignature(payload, webhookSecret);
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+
+        // Add signature header if signature was generated
+        if (signature) {
+          headers["X-Firecrawl-Signature"] = signature;
+        }
+
+        await axios.post(webhookUrl, payload, {
+          headers,
+          timeout: 10000,
+        });
+
+        Logger.debug(`Webhook sent for scrape ID: ${scrapeId}${signature ? ' (signed)' : ''}`);
         break;
       } catch (error) {
         Logger.debug(
@@ -251,9 +262,11 @@ export async function scrapeSingleUrl(
         );
         break;
       }
-      if (pageStatusCode && (pageStatusCode == 404 || pageStatusCode == 500)) {
+      // Fix for dead loop on forbidden webpages (Issue #2056)
+      // Break on error status codes to prevent infinite retry loops
+      if (pageStatusCode && (pageStatusCode == 401 || pageStatusCode == 403 || pageStatusCode == 404 || pageStatusCode == 500)) {
         Logger.debug(
-          `⛏️ ${scraper}: Successfully scraped ${urlToScrape} with status code 404, breaking`
+          `⛏️ ${scraper}: Received error status code ${pageStatusCode} for ${urlToScrape}, breaking to prevent retry loop`
         );
         break;
       }

@@ -129,9 +129,10 @@ export async function scrapeController(
     }
   }
 
+  // PR #2414: Always return job ID from sync methods for tracking
   return res.status(200).json({
     success: true,
     data: legacyDocumentConverter(doc),
-    scrape_id: origin?.includes("website") ? jobId : undefined,
+    scrape_id: jobId,
   });
 }
