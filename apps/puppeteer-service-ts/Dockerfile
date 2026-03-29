@@ -1,39 +1,13 @@
 FROM node:18-slim
 
-WORKDIR /usr/src/app
-
-RUN npm install -g pnpm
-
-COPY . .
-
-RUN pnpm install
-
-# Install Playwright dependencies
-RUN npx playwright install --with-deps
-
-RUN pnpm run build
-
-ARG PORT
-ENV PORT=${PORT}
-
-EXPOSE ${PORT}
-
-CMD [ "pnpm", "start" ]
-FROM node:18-slim
-
-# Install system dependencies for Playwright
+# Install system dependencies for Playwright/Chromium (ARM64 compatible)
 RUN apt-get update && \
-    apt-get install -y wget gnupg && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list && \
-    apt-get update && \
     apt-get install -y \
-    google-chrome-stable \
+    chromium \
     fonts-ipafont-gothic \
     fonts-wqy-zenhei \
     fonts-thai-tlwg \
     fonts-kacst \
-    fonts-symbola \
     fonts-noto \
     fonts-freefont-ttf \
     --no-install-recommends && \
@@ -53,8 +27,9 @@ RUN pnpm install --frozen-lockfile
 # Copy the rest of the application
 COPY . .
 
-# Install Playwright with dependencies
-RUN npx playwright install --with-deps chromium
+# Tell Playwright to use system Chromium instead of downloading
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Build the application
 RUN pnpm run build
@@ -62,8 +37,6 @@ RUN pnpm run build
 # Set up environment
 ARG PORT=3000
 ENV PORT=${PORT}
-ENV PLAYWRIGHT_BROWSERS_PATH=/app/ms-playwright
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 EXPOSE ${PORT}
 
