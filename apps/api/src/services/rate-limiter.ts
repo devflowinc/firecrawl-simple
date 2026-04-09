@@ -4,7 +4,7 @@ import Redis from "ioredis";
 
 const RATE_LIMITS = {
   crawl: {
-    default: 3,
+    default: 100,
     free: 2,
     starter: 10,
     standard: 5,
@@ -17,7 +17,7 @@ const RATE_LIMITS = {
     growthdouble: 50,
   },
   scrape: {
-    default: 20,
+    default: 500,
     free: 10,
     starter: 100,
     standard: 100,
@@ -30,7 +30,7 @@ const RATE_LIMITS = {
     growthdouble: 1000,
   },
   search: {
-    default: 20,
+    default: 500,
     free: 5,
     starter: 50,
     standard: 50,
@@ -43,7 +43,7 @@ const RATE_LIMITS = {
     growthdouble: 500,
   },
   map:{
-    default: 20,
+    default: 500,
     free: 5,
     starter: 50,
     standard: 50,
@@ -57,15 +57,15 @@ const RATE_LIMITS = {
   },
   preview: {
     free: 5,
-    default: 5,
+    default: 100,
   },
   account: {
     free: 100,
-    default: 100,
+    default: 1000,
   },
   crawlStatus: {
     free: 150,
-    default: 250,
+    default: 1000,
   },
   testSuite: {
     free: 10000,
