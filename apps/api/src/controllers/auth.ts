@@ -85,7 +85,7 @@ export async function supaAuthenticateUser(
 
     cacheKey = `api_key:${normalizedApi}`;
 
-    const plan = getPlanByPriceId(priceId);
+    const plan = priceId ? getPlanByPriceId(priceId) : "default";
     // HyperDX Logging
     setTrace(teamId, normalizedApi);
     subscriptionData = {
