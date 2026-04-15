@@ -10,9 +10,7 @@
     "start:dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "test": "npx jest --detectOpenHandles --forceExit --openHandlesTimeout=120000 --watchAll=false --testPathIgnorePatterns='src/__tests__/e2e_noAuth/*'",
-    "test:local-no-auth": "npx jest --detectOpenHandles --forceExit --openHandlesTimeout=120000 --watchAll=false --testPathIgnorePatterns='src/__tests__/e2e_withAuth/*'",
-    "workers": "nodemon --exec ts-node src/services/queue-worker.ts",
-    "worker:production": "node dist/src/services/queue-worker.js"
+    "test:local-no-auth": "npx jest --detectOpenHandles --forceExit --openHandlesTimeout=120000 --watchAll=false --testPathIgnorePatterns='src/__tests__/e2e_withAuth/*'"
   },
   "author": "",
   "license": "ISC",
