@@ -1,7 +1,5 @@
 name: Check Queues
-on:
-  schedule:
-    - cron: '*/5 * * * *'
+on: []
 
 env:
   BULL_AUTH_KEY: ${{ secrets.BULL_AUTH_KEY }}
