@@ -1,7 +1,5 @@
 name: Clean Every 30 Minutes Before 24h Completed Jobs
-on:
-  schedule:
-    - cron: '30 * * * *'
+on: []
 
 env:
   BULL_AUTH_KEY: ${{ secrets.BULL_AUTH_KEY }}
