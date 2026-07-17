@@ -38,6 +38,7 @@ services:
   api:
     image: trieve/firecrawl
     <<: *common-service
+    pull_policy: build
     depends_on:
       - redis
       - puppeteer-service
