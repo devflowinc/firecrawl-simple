@@ -74,11 +74,19 @@ PLAYWRIGHT_MICROSERVICE_URL=  # set if you'd like to run a playwright fallback
         
     *   Don't forget to set the proxy server in your `.env` file as needed.
 
-4.  Build and run the Docker containers:
+4.  Build and run the Docker containers.
+
+    The `api` service in `docker-compose.yaml` sets `pull_policy: build`, so Compose builds it from `apps/api/Dockerfile` and never pulls the stale published `trieve/firecrawl:latest` image (see issue [#48](https://github.com/devflowinc/firecrawl-simple/issues/48)). `docker compose up -d` is enough:
     
     ```bash
+    docker compose up -d
+    ```
+
+    If you prefer, the explicit two-step form is equivalent:
+
+    ```bash
     docker compose build
-    docker compose up
+    docker compose up -d
     ```
 
 This will run a local instance of Firecrawl which can be accessed at `http://localhost:3002`.

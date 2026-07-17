@@ -37,6 +37,11 @@ Fire-engine, Firecrawl's solution for anti-bot pages, being closed source is the
 
 ## How to self host?
 
+> **Warning — published Docker images are currently stale.**
+> The `trieve/firecrawl` and `trieve/puppeteer-service-ts` images on Docker Hub were last published in September 2024 and no longer start because the bundled `corepack` predates npm's registry signing-key rotation (`Cannot find matching keyid`). There is no release-triggered publish workflow in this repo, so `:latest` and the pinned tags below have drifted.
+>
+> **To self-host today, build from source instead of pulling published images.** Clone this repo and run `docker compose up -d` from the repo root — the `docker-compose.yaml` is wired for local builds (the `api` service sets `pull_policy: build` so it always builds from `apps/api/Dockerfile` and never pulls). See [`SELF_HOST.md`](./SELF_HOST.md) for the full walkthrough. The snippet below will work as-is once the images are republished.
+
 You should add the following services to your docker-compose as follows. We trust that you can configure Kubernetes or other hosting solutions to run these services.
 
 ```yaml
